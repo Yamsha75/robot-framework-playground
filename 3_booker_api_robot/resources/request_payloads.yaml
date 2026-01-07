@@ -1,0 +1,24 @@
+INSERT_DATA:
+  firstname: John
+  lastname: Smith
+  totalprice: 120
+  depositpaid: false
+  bookingdates:
+    checkin: "2025-01-01"
+    checkout: "2025-01-10"
+  additionalneeds: Sample Text
+
+UPDATE_DATA:
+  firstname: Jane
+  lastname: Doe
+  totalprice: 13
+  depositpaid: true
+  bookingdates:
+    checkin: "2025-12-10"
+    checkout: "2025-12-12"
+  additionalneeds: "Lorem Ipsum"
+
+PARTIAL_UPDATE_DATA:
+  firstname: Joe
+  totalprice: 99
+  depositpaid: true

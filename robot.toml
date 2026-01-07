@@ -1,0 +1,9 @@
+[tool.robocop.lint]
+ignore = ["DOC01", "DOC02", "DOC03"]
+
+[tool.robocop.format]
+configure = [
+  "AlignTemplatedTestCases.enabled=True",
+#   "AlignTestCasesSection.enabled=True",
+  "AlignKeywordsSection.enabled=True",
+]
