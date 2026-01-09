@@ -1,6 +1,5 @@
 *** Settings ***
 Library         Collections
-
 Variables       ../resources/credentials.yaml
 Library         ../BookerAPILibrary.py    ${API_URL}
 
