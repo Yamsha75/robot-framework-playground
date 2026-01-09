@@ -1,64 +1,54 @@
 *** Settings ***
 Library         Collections
-
 Variables       ../resources/credentials.yaml
 Variables       ../resources/request_payloads.yaml
 Library         ../BookerAPILibrary.py    ${API_URL}    ${CORRECT_AUTH_CREDENTIALS}
 
 
-*** Variables ***
-${OBJECT_NAME}      booking
-
-
 *** Test Cases ***
-Get Many
-
 Get Many Test
-    ${response_body}    Send Get Request    ${OBJECT_NAME}
-    Should Not Be Empty    ${response_body}
-    ${bookings_count}    Get Length    ${response_body}
-    Should Not Be Equal As Integers    ${bookings_count}    0
+    ${records}    Get Booking Ids
+    Response Should Not Be Empty
+    VAR    ${first_record}    ${records}[0]
+    Dictionary Should Contain Key    ${first_record}    bookingid
 
 Get One Test
-    Requs
-    ${response_body}    Send Get Request    ${OBJECT_NAME}
-    ${object_id}    Get From List    ${response_body}    0
-    ${response_body}    Send Get Request    ${OBJECT_NAME}    ${object_id}
+    ${record_id}    Get Random Booking Id
+    ${record}    Get Booking    ${record_id}
+    Response Should Not Be Empty
+    Lists Should Be Equal    ${record.keys()}    ${INSERT_DATA.keys()}    ignore_order=True
 
 Insert Test
-    Log In
-    ${response}    POST    ${ENDPOINT_URL}    json=${insert_data}
-    Log Dictionary    ${response.json()}
-    Request Should Be Successful
-    VAR    ${booking_id}    ${response.json()}[bookingid]
-    ${response}    GET    ${ENDPOINT_URL}/${booking_id}
-    Dictionaries Should Be Equal    ${response.json()}    ${insert_data}    ignore_keys=["bookingid"]
+    ${response_body}    Create Booking    ${INSERT_DATA}
+    Log Dictionary    ${response_body}
+    Response Should Not Be Empty
+    VAR    ${record_id}    ${response_body}[bookingid]
+    VAR    ${record}    ${response_body}[booking]
+    # compare POST response with insert data
+    Dictionaries Should Be Equal    ${record}    ${INSERT_DATA}    ignore_keys=["bookingid"]    ignore_value_order=True
+    # compare GET response with insert data
+    ${record}    Get Booking    ${record_id}
+    Dictionaries Should Be Equal    ${record}    ${INSERT_DATA}    ignore_value_order=True
 
 Update Test
-    ${token}    Get Token
-    ${headers}    Prepare Headers    ${token}
+    ${record_id}    Get Random Booking Id
+    ${record}    Update Booking    ${record_id}    ${UPDATE_DATA}
+    Log Dictionary    ${record}
+    # compare PUT response with insert data
+    Dictionaries Should Be Equal    ${record}    ${UPDATE_DATA}    ignore_keys=["bookingid"]    ignore_value_order=True
+    # compare GET response with insert data
+    ${record}    Get Booking    ${record_id}
+    Dictionaries Should Be Equal    ${record}    ${UPDATE_DATA}    ignore_value_order=True
 
 Partial Update Test
-    ${token}    Get Token
-    ${headers}    Prepare Headers    ${token}
-    ${response}    POST    ${ENDPOINT_URL}    json=${insert_data}
-    Request Should Be Successful
-    VAR    ${booking_id}    ${response.json()}[bookingid]
-    ${response}    PATCH    ${ENDPOINT_URL}/${booking_id}    json=${partial_update_date}    headers=${headers}
-    # all key-value pairs from ${partial_update_date} must be present and equal in the response body
-    Dictionary Should Contain Sub Dictionary    ${response.json()}    ${partial_update_date}    ignore_value_order=True
+    ${record_id}    Get Random Booking Id
+    ${record}    Partial Update Booking    ${record_id}    ${PARTIAL_UPDATE_DATA}
+    # all key-value pairs from ${PARTIAL_UPDATE_DATA} must be present and equal in the response body
+    Log Dictionary    ${record}
+    Dictionary Should Contain Sub Dictionary    ${record}    ${PARTIAL_UPDATE_DATA}    ignore_value_order=True
 
 
 *** Keywords ***
-Get Record Ids
-    ${records}              Send Get Request        /${OBJECT_NAME}
-    RETURN                  ${records}
-
-Get First Record Id
-    ${records}              Get Record Ids
+Get Random Booking Id
+    ${records}              Get Booking Ids
     RETURN                  ${records}[0][bookingid]
-
-Get Record By Id
-    [Arguments]             ${record_id}
-    ${record}               Send Get Request        /${OBJECT_NAME}/${record_id}
-    RETURN                  ${record}
